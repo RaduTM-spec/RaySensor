@@ -14,12 +14,6 @@
         hits[6] = Physics2D.Raycast(transform.position, -transform.right, rayLength, layerMask);
         hits[7] = Physics2D.Raycast(transform.position, -transform.right + transform.up, diagonalRayLength, layerMask);
 
-        foreach (RaycastHit2D hit2D in hits)
-            if (hit2D == true)
-                sensorBuffer.AddObservation(hit2D.distance);
-            else sensorBuffer.AddObservation(0f);
-        
-
         Debug.DrawRay(transform.position, transform.up * rayLength);
         Debug.DrawRay(transform.position, (transform.right + transform.up) * diagonalRayLength);
         Debug.DrawRay(transform.position, transform.right * rayLength);
@@ -28,3 +22,9 @@
         Debug.DrawRay(transform.position, (-transform.right - transform.up) * diagonalRayLength);
         Debug.DrawRay(transform.position, -transform.right * rayLength);
         Debug.DrawRay(transform.position, (-transform.right + transform.up) * diagonalRayLength);
+
+//ML Framework related (for filling the SensorBuffer in CollectObservations())
+        foreach (RaycastHit2D hit2D in hits)
+            if (hit2D == true)
+                sensorBuffer.AddObservation(hit2D.distance);
+            else sensorBuffer.AddObservation(0f);
