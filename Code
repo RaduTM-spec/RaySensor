@@ -1,20 +1,30 @@
  //C# Unity
  // requires a LayerMask
+ 
+        float rayLength = 5f;
+        float diagonalRayLength = rayLength * 0.70710678118f; // This number is cos(45 degrees)
         RaycastHit2D[] hits = new RaycastHit2D[8];
-        hits[0] = Physics2D.Raycast(transform.position, transform.up, 500f, layerMask);
-        hits[1] = Physics2D.Raycast(transform.position, (transform.right + transform.up) / 2, 500f, layerMask);
-        hits[2] = Physics2D.Raycast(transform.position, transform.right, 500f, layerMask);
-        hits[3] = Physics2D.Raycast(transform.position, (transform.right - transform.up)/2, 500f, layerMask);
-        hits[4] = Physics2D.Raycast(transform.position, -transform.up, 500f, layerMask);
-        hits[5] = Physics2D.Raycast(transform.position, (-transform.right - transform.up) / 2, 500f, layerMask);
-        hits[6] = Physics2D.Raycast(transform.position, -transform.right, 500f, layerMask);
-        hits[7] = Physics2D.Raycast(transform.position, (-transform.right + transform.up) / 2, 500f, layerMask);
         
-        Debug.DrawRay(transform.position, transform.up);
-        Debug.DrawRay(transform.position, transform.right + transform.up);
-        Debug.DrawRay(transform.position, transform.right);
-        Debug.DrawRay(transform.position, transform.right - transform.up);
-        Debug.DrawRay(transform.position, -transform.up);
-        Debug.DrawRay(transform.position, -transform.right - transform.up);
-        Debug.DrawRay(transform.position, -transform.right);
-        Debug.DrawRay(transform.position, -transform.right + transform.up);
+        hits[0] = Physics2D.Raycast(transform.position, transform.up, rayLength, layerMask);
+        hits[1] = Physics2D.Raycast(transform.position, transform.right + transform.up, diagonalRayLength, layerMask);
+        hits[2] = Physics2D.Raycast(transform.position, transform.right, rayLength, layerMask);
+        hits[3] = Physics2D.Raycast(transform.position, transform.right - transform.up, diagonalRayLength, layerMask);
+        hits[4] = Physics2D.Raycast(transform.position, -transform.up, rayLength, layerMask);
+        hits[5] = Physics2D.Raycast(transform.position, -transform.right - transform.up, diagonalRayLength, layerMask);
+        hits[6] = Physics2D.Raycast(transform.position, -transform.right, rayLength, layerMask);
+        hits[7] = Physics2D.Raycast(transform.position, -transform.right + transform.up, diagonalRayLength, layerMask);
+
+        foreach (RaycastHit2D hit2D in hits)
+            if (hit2D == true)
+                sensorBuffer.AddObservation(hit2D.distance);
+            else sensorBuffer.AddObservation(0f);
+        
+
+        Debug.DrawRay(transform.position, transform.up * rayLength);
+        Debug.DrawRay(transform.position, (transform.right + transform.up) * diagonalRayLength);
+        Debug.DrawRay(transform.position, transform.right * rayLength);
+        Debug.DrawRay(transform.position, (transform.right - transform.up) * diagonalRayLength);
+        Debug.DrawRay(transform.position, -transform.up * rayLength);
+        Debug.DrawRay(transform.position, (-transform.right - transform.up) * diagonalRayLength);
+        Debug.DrawRay(transform.position, -transform.right * rayLength);
+        Debug.DrawRay(transform.position, (-transform.right + transform.up) * diagonalRayLength);
