@@ -1,0 +1,19 @@
+ // requires a LayerMask
+        RaycastHit2D[] hits = new RaycastHit2D[8];
+        hits[0] = Physics2D.Raycast(transform.position, transform.up, 500f, layerMask);
+        hits[1] = Physics2D.Raycast(transform.position, (transform.right + transform.up) / 2, 500f, layerMask);
+        hits[2] = Physics2D.Raycast(transform.position, transform.right, 500f, layerMask);
+        hits[3] = Physics2D.Raycast(transform.position, (transform.right - transform.up)/2, 500f, layerMask);
+        hits[4] = Physics2D.Raycast(transform.position, -transform.up, 500f, layerMask);
+        hits[5] = Physics2D.Raycast(transform.position, (-transform.right - transform.up) / 2, 500f, layerMask);
+        hits[6] = Physics2D.Raycast(transform.position, -transform.right, 500f, layerMask);
+        hits[7] = Physics2D.Raycast(transform.position, (-transform.right + transform.up) / 2, 500f, layerMask);
+        
+        Debug.DrawRay(transform.position, transform.up);
+        Debug.DrawRay(transform.position, transform.right + transform.up);
+        Debug.DrawRay(transform.position, transform.right);
+        Debug.DrawRay(transform.position, transform.right - transform.up);
+        Debug.DrawRay(transform.position, -transform.up);
+        Debug.DrawRay(transform.position, -transform.right - transform.up);
+        Debug.DrawRay(transform.position, -transform.right);
+        Debug.DrawRay(transform.position, -transform.right + transform.up);
