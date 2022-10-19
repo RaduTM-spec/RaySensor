@@ -1,3 +1,9 @@
+ //C# Unity
+ // requires a LayerMask
+ 
+        float rayLength = 5f;
+        float diagonalRayLength = rayLength * 0.70710678118f; // This number is cos(45 degrees)
+        
         RaycastHit2D[] hits = new RaycastHit2D[16];
         hits[0] = Physics2D.Raycast(transform.position, transform.up, rayLength, layerMask);
         hits[1] = Physics2D.Raycast(transform.position, transform.right + transform.up, diagonalRayLength, layerMask);
