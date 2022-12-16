@@ -1,7 +1,8 @@
 # RaySensor tool
-RaySensor is a special component used to cast multiple rays in any direction wanted by oadding it to the agent gameObject. Working both in 3D and 2D(on XY and ZY planes), it provides a simple to adjust interface in order to produce the agent relative distances to the environment objects inside a public float[] variable called **observations**.
+RaySensor is a special component used to cast multiple rays in any direction wanted by oadding it to the agent gameObject. Working both in 3D and 2D, it provides a simple to adjust interface in order to produce the agent relative distances to the environment objects inside a public float[] variable called **observations**.
 
-![RaySensor2](https://user-images.githubusercontent.com/67599940/207079580-31229701-2e18-4986-90da-4286efd4ced3.png)
+![Screenshot 2022-12-16 231925](https://user-images.githubusercontent.com/67599940/208190857-12bda599-5a2d-4186-9678-fbb0f535f770.png)
+
 
 ![RaySensor](https://user-images.githubusercontent.com/67599940/207079676-81730006-6282-4aa8-ab64-1c506c136f54.png)
 
