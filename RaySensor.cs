@@ -3,9 +3,9 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEditor;
 
-namespace MLFramework
+namespace DRLAgents
 {
-    [AddComponentMenu("ML Framework/Ray Sensor")]
+    [AddComponentMenu("DRL Agents/Ray Sensor")]
     public class RaySensor : MonoBehaviour
     {
 
@@ -46,7 +46,7 @@ namespace MLFramework
         }
         private void OnDrawGizmos()
         {
-            if (simStarted && agent.behavior == MLFramework.BehaviorType.Static)
+            if (simStarted && agent.behavior == DRLAgents.BehaviorType.Static)
                 return;
 
             float oneAngle = rays == 1 ? 0 : (float)-fieldOfView / (rays - 1f);
@@ -66,12 +66,13 @@ namespace MLFramework
             for (int r = 0; r < rays; r++)
             {
                 Vector3 rayDirection;
-                if (world == World.World3d)
+                if (world == World.World3d) //3d
                 {
                     rayDirection = Quaternion.AngleAxis(currentAngle, transform.up) * startAngle;
 
                     RaycastHit hit;
                     bool isHit = Physics.SphereCast(castOrigin, sphereCastRadius, rayDirection, out hit, distance, layerMask);
+                    
                     if (isHit == true)
                     {
                         Gizmos.color = rayColor;
@@ -87,7 +88,7 @@ namespace MLFramework
                 else //2d
                 {
                     rayDirection = Quaternion.AngleAxis(currentAngle, transform.forward) * startAngle;
-
+                    
                     RaycastHit2D hit2D = Physics2D.CircleCast(castOrigin, sphereCastRadius, rayDirection, distance, layerMask);
                     if (hit2D == true)
                     {
@@ -132,12 +133,12 @@ namespace MLFramework
                 
                 if (world == World.World3d)
                 {
-                    Vector3 rayDirection = Quaternion.AngleAxis(currentAngle, transform.forward) * startAngle;
+                    Vector3 rayDirection = Quaternion.AngleAxis(currentAngle, transform.up) * startAngle;
                     CastRay3D(r, castOrigin, sphereCastRadius, rayDirection, distance, layerMask);
                 }
                 else
                 {
-                    Vector3 rayDirection = Quaternion.AngleAxis(currentAngle, transform.up) * startAngle;
+                    Vector3 rayDirection = Quaternion.AngleAxis(currentAngle, transform.forward) * startAngle;
                     CastRay2D(r, castOrigin, sphereCastRadius, rayDirection, distance, layerMask);
                 }
               
