@@ -1,22 +1,23 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.InteropServices.WindowsRuntime;
 
-namespace DRLAgents
+namespace SmartAgents
 {
-    [AddComponentMenu("DRL Agents/Ray Sensor")]
+    [AddComponentMenu("Smart Agents/Ray Sensor")]
     public class RaySensor : MonoBehaviour
     {
-
-        [HideInInspector] public float[] observations;
+        List<float> observations = new List<float>();
         [SerializeField, Tooltip("@scene type")] World world = World.World3d;
         [SerializeField, Tooltip("@LayerMask used when casting the rays")] LayerMask layerMask = ~0;
         [SerializeField, Tooltip("@observation value returned by the rays")] Info info = Info.Distance;
         [SerializeField, Range(1, 50), Tooltip("@size of the buffer equals the number of rays")] int rays = 5;
         [SerializeField, Range(1, 360)] int fieldOfView = 45;
         [SerializeField, Range(0, 359)] int rotationOffset = 0;
-        [SerializeField, Range(1, 1000), Tooltip("@maximum length of the rays\n@when no collision, value of the observation is 0")] int distance = 30;
+        [SerializeField, Range(1, 1000), Tooltip("@maximum length of the rays\n@when no collision, value of the observation is 0")] int distance = 100;
         [SerializeField, Range(0.01f, 10)] float sphereCastRadius = 0.5f;
 
         [Space(10)]
@@ -29,7 +30,6 @@ namespace DRLAgents
         [SerializeField] Color rayColor = Color.green;
         [SerializeField] Color missRayColor = Color.red;
 
-        Agent agent;
         bool simStarted = false;
         private void Awake()
         {
@@ -37,7 +37,6 @@ namespace DRLAgents
         }
         private void Start()
         {
-            agent = GetComponent<Agent>();
             CastRays();
         }
         private void Update()
@@ -46,7 +45,7 @@ namespace DRLAgents
         }
         private void OnDrawGizmos()
         {
-            if (simStarted && agent.behavior == DRLAgents.BehaviorType.Static)
+            if (simStarted)
                 return;
 
             float oneAngle = rays == 1 ? 0 : (float)-fieldOfView / (rays - 1f);
@@ -110,10 +109,6 @@ namespace DRLAgents
         }
         private void CastRays()
         {
-            if (agent.behavior == BehaviorType.Static)
-                return;
-
-            observations = new float[rays];
             float oneAngle = rays == 1 ? 0 : (float)-fieldOfView / (rays - 1f);
 
             float begin = (float)-oneAngle * (rays - 1) / 2 + rotationOffset;
@@ -134,85 +129,184 @@ namespace DRLAgents
                 if (world == World.World3d)
                 {
                     Vector3 rayDirection = Quaternion.AngleAxis(currentAngle, transform.up) * startAngle;
-                    CastRay3D(r, castOrigin, sphereCastRadius, rayDirection, distance, layerMask);
+                    CastRay3D(castOrigin, sphereCastRadius, rayDirection, distance, layerMask);
                 }
                 else
                 {
                     Vector3 rayDirection = Quaternion.AngleAxis(currentAngle, transform.forward) * startAngle;
-                    CastRay2D(r, castOrigin, sphereCastRadius, rayDirection, distance, layerMask);
+                    CastRay2D(castOrigin, sphereCastRadius, rayDirection, distance, layerMask);
                 }
               
                 currentAngle += oneAngle;
             }
-
         }
-        private void CastRay3D(int index, Vector3 castOrigin, float sphereCastRadius, Vector3 rayDirection, float distance, LayerMask layerMask)
+        private void CastRay3D(Vector3 castOrigin, float sphereCastRadius, Vector3 rayDirection, float distance, LayerMask layerMask)
         {
             RaycastHit hit;
-            bool isHit = Physics.SphereCast(castOrigin, sphereCastRadius, rayDirection, out hit, distance, layerMask);
-            if (isHit == true)
+            if (Physics.SphereCast(castOrigin, sphereCastRadius, rayDirection, out hit, distance, layerMask))
             {
-                if (info == Info.Distance)
-                    observations[index] = hit.distance;
-                else
+                switch(info)
                 {
-                    RayDetectable inf = hit.transform.GetComponent<RayDetectable>();
-                    observations[index] = inf == null ? 0 : inf.infoValue;
+                    case Info.Distance:
+                        observations.Add(hit.distance);
+                        break;
+                    case Info.Layer:
+                        observations.Add(hit.collider.gameObject.layer);
+                        break;
+                    case Info.Angle:
+                        observations.Add(Vector3.Angle(hit.normal, rayDirection));
+                        break;
+                    case Info.All:
+                        observations.Add(hit.distance);
+                        observations.Add(hit.collider.gameObject.layer);
+                        observations.Add(Vector3.Angle(hit.normal, rayDirection));
+                        break;
                 }
             }
             else
             {
-                observations[index] = 0;
+                switch (info)
+                {
+                    case Info.Distance:
+                        observations.Add(0);
+                        break;
+                    case Info.Layer:
+                        observations.Add(0);
+                        break;
+                    case Info.Angle:
+                        observations.Add(0);
+                        break;
+                    case Info.All:
+                        observations.Add(0);
+                        observations.Add(0);
+                        observations.Add(0);
+                        break;
+                }
             }
         }
-        private void CastRay2D(int index, Vector3 castOrigin, float sphereCastRadius, Vector3 rayDirection, float distance, LayerMask layerMask)
+        private void CastRay2D(Vector3 castOrigin, float sphereCastRadius, Vector3 rayDirection, float distance, LayerMask layerMask)
         {
             RaycastHit2D hit = Physics2D.CircleCast(castOrigin, sphereCastRadius, rayDirection, distance, layerMask);
             if (hit == true)
             {
-                if (info == Info.Distance)
-                    observations[index] = hit.distance;
-                else
+                switch (info)
                 {
-                    RayDetectable inf = hit.transform.GetComponent<RayDetectable>();
-                    observations[index] = inf == null ? 0 : inf.infoValue;
+                    case Info.Distance:
+                        observations.Add(hit.distance);
+                        break;
+                    case Info.Layer:
+                        observations.Add(hit.collider.gameObject.layer);
+                        break;
+                    case Info.Angle:
+                        observations.Add(Vector3.Angle(hit.normal, rayDirection));
+                        break;
+                    case Info.All:
+                        observations.Add(hit.distance);
+                        observations.Add(hit.collider.gameObject.layer);
+                        observations.Add(Vector3.Angle(hit.normal, rayDirection));
+                        break;
                 }
             }
             else
             {
-                observations[index] = 0;
+                switch (info)
+                {
+                    case Info.Distance:
+                        observations.Add(0);
+                        break;
+                    case Info.Layer:
+                        observations.Add(0);
+                        break;
+                    case Info.Angle:
+                        observations.Add(0);
+                        break;
+                    case Info.All:
+                        observations.Add(0);
+                        observations.Add(0);
+                        observations.Add(0);
+                        break;
+                }
             }
         }
-
+        public int GetObservationSize() => observations.Count;
+        public float[] GetObservations() => observations.ToArray();
         public enum World
         {
-            [Tooltip("@horizontal plane cast")]
             World3d,
-            [Tooltip("@vertical plane cast\n@can be used for 3d worlds too")]
             World2d,
         }
         public enum Info
         {
-            [Tooltip("@distance to the hit object")]
+            [Tooltip("1 float value per ray")]
             Distance,
-            [Tooltip("@[Ray Detectable] hit object value")]
-            Value,
+            [Tooltip("1 float value per ray")]
+            Layer,
+            [Tooltip("1 float value per ray")]
+            Angle,
+            [Tooltip("3 float values per ray")]
+            All,
         }
-        //patch
-        //v 2.0 updated and works properly
     }
     [CustomEditor(typeof(RaySensor)), CanEditMultipleObjects]
-    class ScriptlessEditor : Editor
+    class ScriptlessRaySensor : Editor
     {
         private static readonly string[] _dontIncludeMe = new string[] { "m_Script" };
-
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-
+            
             DrawPropertiesExcluding(serializedObject, _dontIncludeMe);
 
-            serializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();    
         }
     }
+    public class ReadOnlyAttribute : PropertyAttribute
+    {
+
+    }
+
+    [CustomPropertyDrawer(typeof(ReadOnlyAttribute))]
+    public class ReadOnlyDrawer : PropertyDrawer
+    {
+        public override float GetPropertyHeight(SerializedProperty property,
+                                                GUIContent label)
+        {
+            return EditorGUI.GetPropertyHeight(property, label, true);
+        }
+
+        public override void OnGUI(Rect position,
+                                   SerializedProperty property,
+                                   GUIContent label)
+        {
+            GUI.enabled = false;
+            EditorGUI.PropertyField(position, property, label, true);
+            GUI.enabled = true;
+        }
+    }
+    public static class EditorGUILayoutUtility
+    {
+        public static readonly Color DEFAULT_COLOR = new Color(0f, 0f, 0f, 0.3f);
+        public static readonly Vector2 DEFAULT_LINE_MARGIN = new Vector2(2f, 2f);
+
+        public const float DEFAULT_LINE_HEIGHT = 1f;
+
+        public static void HorizontalLine(Color color, float height, Vector2 margin)
+        {
+            GUILayout.Space(margin.x);
+
+            EditorGUI.DrawRect(EditorGUILayout.GetControlRect(false, height), color);
+
+            GUILayout.Space(margin.y);
+        }
+        public static void HorizontalLine(Color color, float height) => EditorGUILayoutUtility.HorizontalLine(color, height, DEFAULT_LINE_MARGIN);
+        public static void HorizontalLine(Color color, Vector2 margin) => EditorGUILayoutUtility.HorizontalLine(color, DEFAULT_LINE_HEIGHT, margin);
+        public static void HorizontalLine(float height, Vector2 margin) => EditorGUILayoutUtility.HorizontalLine(DEFAULT_COLOR, height, margin);
+
+        public static void HorizontalLine(Color color) => EditorGUILayoutUtility.HorizontalLine(color, DEFAULT_LINE_HEIGHT, DEFAULT_LINE_MARGIN);
+        public static void HorizontalLine(float height) => EditorGUILayoutUtility.HorizontalLine(DEFAULT_COLOR, height, DEFAULT_LINE_MARGIN);
+        public static void HorizontalLine(Vector2 margin) => EditorGUILayoutUtility.HorizontalLine(DEFAULT_COLOR, DEFAULT_LINE_HEIGHT, margin);
+
+        public static void HorizontalLine() => EditorGUILayoutUtility.HorizontalLine(DEFAULT_COLOR, DEFAULT_LINE_HEIGHT, DEFAULT_LINE_MARGIN);
+    }
+
 }
